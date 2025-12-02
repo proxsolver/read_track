@@ -1,0 +1,24 @@
+services:
+  # Web Service (Node.js App)
+  - type: web
+    name: read-track
+    runtime: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: read-track-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+
+databases:
+  # MySQL Database
+  - name: read-track-db
+    databaseName: read_track
+    user: read_track_user
