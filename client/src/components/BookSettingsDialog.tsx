@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Book } from '@/lib/types';
+import { Book, ReadingRecord } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +16,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Trash2 } from 'lucide-react';
+import { getTodayString } from '@/lib/calculations';
 
 interface BookSettingsDialogProps {
   book: Book;
@@ -24,6 +25,7 @@ interface BookSettingsDialogProps {
   onUpdate: (updates: Partial<Book>) => void;
   onDelete: () => void;
   currentPage: number;
+  addRecord: (record: Omit<ReadingRecord, 'id'>) => void;
 }
 
 export default function BookSettingsDialog({
@@ -33,6 +35,7 @@ export default function BookSettingsDialog({
   onUpdate,
   onDelete,
   currentPage,
+  addRecord,
 }: BookSettingsDialogProps) {
   const [title, setTitle] = useState(book.title);
   const [totalPages, setTotalPages] = useState(String(book.totalPages));
@@ -79,8 +82,11 @@ export default function BookSettingsDialog({
 
     // 현재 페이지가 변경되었으면 기록 추가
     if (current !== currentPage) {
-      // 이는 부모 컴포넌트에서 처리해야 함
-      (window as any).__updateCurrentPage?.(book.id, current);
+      addRecord({
+        bookId: book.id,
+        date: getTodayString(),
+        currentPage: current,
+      });
     }
 
     onOpenChange(false);

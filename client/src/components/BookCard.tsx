@@ -29,7 +29,7 @@ interface BookCardProps {
 
 export default function BookCard({ book }: BookCardProps) {
   const [, setLocation] = useLocation();
-  const { getRecordsByBook, updateBook, deleteBook } = useApp();
+  const { getRecordsByBook, updateBook, deleteBook, addRecord } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const records = getRecordsByBook(book.id);
@@ -134,6 +134,7 @@ export default function BookCard({ book }: BookCardProps) {
         onUpdate={handleUpdateBook}
         onDelete={handleDeleteBook}
         currentPage={currentPage}
+        addRecord={addRecord}
       />
     </>
   );
