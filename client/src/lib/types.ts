@@ -10,7 +10,7 @@
  * 도서 정보
  */
 export interface Book {
-  id: string; // 고유 ID (nanoid 사용)
+  id: number; // 고유 ID (서버 생성)
   title: string; // 도서명
   totalPages: number; // 총 페이지 수
   dailyPages: number; // 하루 목표 페이지 수
@@ -24,8 +24,8 @@ export interface Book {
  * 일일 독서 기록
  */
 export interface ReadingRecord {
-  id: string; // 고유 ID
-  bookId: string; // 도서 ID
+  id: number; // 고유 ID (서버 생성)
+  bookId: number; // 도서 ID
   date: string; // 기록 날짜 (YYYY-MM-DD)
   currentPage: number; // 현재까지 읽은 페이지
   memo?: string; // 그날의 메모 (선택 사항)

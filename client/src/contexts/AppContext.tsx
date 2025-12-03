@@ -1,101 +1,159 @@
 /**
- * 전역 상태 관리 Context
+ * 전역 상태 관리 Context (서버 기반)
  * 
- * 설계: 미니멀한 상태 관리
- * - 도서 목록, 독서 기록, 사용자 정보를 전역으로 관리
- * - Local Storage와 자동 동기화
+ * tRPC를 통해 서버와 동기화하며 모든 디바이스에서 데이터 공유
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { AppState, Book, ReadingRecord } from '@/lib/types';
-import * as storage from '@/lib/storage';
-import { nanoid } from 'nanoid';
-import { generateTestData } from '@/lib/testData';
+import React, { createContext, useContext, useCallback } from 'react';
+import { Book, ReadingRecord } from '@/lib/types';
+import { trpc } from '@/lib/trpc';
 
 interface AppContextType {
-  state: AppState;
-  addBook: (book: Omit<Book, 'id'>) => void;
-  deleteBook: (bookId: string) => void;
-  updateBook: (bookId: string, updates: Partial<Book>) => void;
-  addRecord: (record: Omit<ReadingRecord, 'id'>) => void;
-  setOwnerName: (name: string) => void;
-  getRecordsByBook: (bookId: string) => ReadingRecord[];
-  loadTestData?: () => void;
+  // 사용자 정보
+  user: { id: number; name: string | null } | undefined;
+
+  // 도서 관련
+  books: Book[];
+  isLoadingBooks: boolean;
+  addBook: (book: Omit<Book, 'id'>) => Promise<void>;
+  deleteBook: (bookId: number) => Promise<void>;
+  updateBook: (bookId: number, updates: Partial<Book>) => Promise<void>;
+
+  // 기록 관련
+  records: ReadingRecord[];
+  isLoadingRecords: boolean;
+  addRecord: (record: Omit<ReadingRecord, 'id'>) => Promise<void>;
+  getRecordsByBook: (bookId: number) => ReadingRecord[];
+
+  // 프로필 관련
+  ownerName: string;
+  setOwnerName: (name: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>(() => {
-    const stored = storage.loadState();
-    // 저장된 데이터가 없으면 테스트 데이터 로드
-    if (stored.books.length === 0) {
-      return generateTestData();
-    }
-    return stored;
+  const utils = trpc.useUtils();
+
+  // 사용자 정보
+  const { data: user } = trpc.auth.me.useQuery();
+
+  // 도서 목록
+  const { data: books = [], isLoading: isLoadingBooks } = trpc.books.list.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+
+  // 독서 기록 (모든 책의 기록을 가져오기)
+  const allRecordsQueries = books.map(book =>
+    trpc.records.listByBook.useQuery(
+      { bookId: book.id },
+      { enabled: !!user }
+    )
+  );
+
+  const records = allRecordsQueries.flatMap(query => query.data || []);
+  const isLoadingRecords = allRecordsQueries.some(query => query.isLoading);
+
+  // 프로필
+  const { data: profile } = trpc.profile.get.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+
+  // Mutations
+  const createBookMutation = trpc.books.create.useMutation({
+    onSuccess: () => {
+      utils.books.list.invalidate();
+    },
   });
 
-  // 상태가 변경될 때마다 Local Storage에 저장
-  useEffect(() => {
-    storage.saveState(state);
-  }, [state]);
+  const updateBookMutation = trpc.books.update.useMutation({
+    onSuccess: () => {
+      utils.books.list.invalidate();
+    },
+  });
 
-  const addBook = useCallback((book: Omit<Book, 'id'>) => {
-    const newBook: Book = {
-      ...book,
-      id: nanoid(),
-    };
-    setState(prev => storage.addBook(prev, newBook));
-  }, []);
+  const deleteBookMutation = trpc.books.delete.useMutation({
+    onSuccess: () => {
+      utils.books.list.invalidate();
+    },
+  });
 
-  const deleteBook = useCallback((bookId: string) => {
-    setState(prev => storage.deleteBook(prev, bookId));
-  }, []);
+  const createRecordMutation = trpc.records.create.useMutation({
+    onSuccess: (_data, variables) => {
+      utils.records.listByBook.invalidate({ bookId: variables.bookId });
+    },
+  });
 
-  const updateBook = useCallback((bookId: string, updates: Partial<Book>) => {
-    setState(prev => storage.updateBook(prev, bookId, updates));
-  }, []);
+  const updateProfileMutation = trpc.profile.update.useMutation({
+    onSuccess: () => {
+      utils.profile.get.invalidate();
+    },
+  });
 
-  const addRecord = useCallback((record: Omit<ReadingRecord, 'id'>) => {
-    const newRecord: ReadingRecord = {
-      ...record,
-      id: nanoid(),
-    };
-    setState(prev => storage.addRecord(prev, newRecord));
-  }, []);
+  // Callbacks
+  const addBook = useCallback(async (book: Omit<Book, 'id'>) => {
+    await createBookMutation.mutateAsync({
+      title: book.title,
+      totalPages: book.totalPages,
+      dailyPages: book.dailyPages,
+      startDate: book.startDate,
+      coverImageUrl: book.coverImageUrl,
+    });
+  }, [createBookMutation]);
 
-  const setOwnerNameFn = useCallback((name: string) => {
-    setState(prev => storage.setOwnerName(prev, name));
-  }, []);
+  const deleteBook = useCallback(async (bookId: number) => {
+    await deleteBookMutation.mutateAsync({ id: bookId });
+  }, [deleteBookMutation]);
 
-  const getRecordsByBook = useCallback((bookId: string) => {
-    return storage.getRecordsByBook(state, bookId);
-  }, [state]);
+  const updateBook = useCallback(async (bookId: number, updates: Partial<Book>) => {
+    await updateBookMutation.mutateAsync({
+      id: bookId,
+      ...updates,
+      isCompleted: updates.isCompleted ? 1 : 0,
+    });
+  }, [updateBookMutation]);
 
-  const loadTestData = useCallback(() => {
-    const testData = generateTestData();
-    setState(testData);
-  }, []);
+  const addRecord = useCallback(async (record: Omit<ReadingRecord, 'id'>) => {
+    await createRecordMutation.mutateAsync({
+      bookId: record.bookId,
+      date: record.date,
+      currentPage: record.currentPage,
+      memo: record.memo,
+    });
+  }, [createRecordMutation]);
+
+  const setOwnerNameFn = useCallback(async (name: string) => {
+    await updateProfileMutation.mutateAsync({ ownerName: name });
+  }, [updateProfileMutation]);
+
+  const getRecordsByBook = useCallback((bookId: number) => {
+    return records
+      .filter(r => r.bookId === bookId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [records]);
 
   const value: AppContextType = {
-    state,
+    user,
+    books: books.map(b => ({
+      ...b,
+      isCompleted: !!b.isCompleted,
+    })),
+    isLoadingBooks,
     addBook,
     deleteBook,
     updateBook,
+    records,
+    isLoadingRecords,
     addRecord,
     setOwnerName: setOwnerNameFn,
     getRecordsByBook,
+    ownerName: profile?.ownerName || '',
   };
 
-  // 개발 환경에서 테스트 데이터 로드 함수를 전역으로 노출
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).__loadTestData = loadTestData;
-    }
-  }, [loadTestData]);
-
   return (
-    <AppContext.Provider value={{ ...value, loadTestData }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );
@@ -107,10 +165,4 @@ export function useApp(): AppContextType {
     throw new Error('useApp must be used within AppProvider');
   }
   return context;
-}
-
-declare global {
-  interface Window {
-    __loadTestData?: () => void;
-  }
 }
