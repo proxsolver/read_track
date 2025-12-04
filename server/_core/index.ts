@@ -29,6 +29,19 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Run database migrations in production
+  if (process.env.NODE_ENV === "production") {
+    try {
+      console.log("[DB] Running migrations...");
+      const { migrateDatabaseCommand } = await import("../../drizzle/migrate");
+      await migrateDatabaseCommand();
+      console.log("[DB] Migrations completed successfully");
+    } catch (error) {
+      console.error("[DB] Migration failed:", error);
+      // Continue anyway - tables might already exist
+    }
+  }
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
