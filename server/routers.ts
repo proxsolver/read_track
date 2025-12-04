@@ -4,7 +4,6 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
-import * as bookApi from "./_core/bookApi";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -91,22 +90,6 @@ export const appRouter = router({
     })).mutation(({ ctx, input }) =>
       db.createOrUpdateUserProfile(ctx.user.id, input)
     ),
-  }),
-
-  bookSearch: router({
-    search: publicProcedure.input(z.object({
-      query: z.string(),
-      maxResults: z.number().optional(),
-    })).query(async ({ input }) => {
-      const results = await bookApi.searchBooks(input.query, input.maxResults);
-      return results;
-    }),
-    getDetails: publicProcedure.input(z.object({
-      isbn13: z.string(),
-    })).query(async ({ input }) => {
-      const details = await bookApi.getBookDetails(input.isbn13);
-      return details;
-    }),
   }),
 });
 
