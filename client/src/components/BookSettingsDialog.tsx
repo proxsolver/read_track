@@ -45,7 +45,7 @@ export default function BookSettingsDialog({
   const [coverImageUrl, setCoverImageUrl] = useState(book.coverImageUrl || '');
   const [error, setError] = useState('');
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError('');
 
     if (!title.trim()) {
@@ -80,9 +80,9 @@ export default function BookSettingsDialog({
       coverImageUrl: coverImageUrl.trim() || undefined,
     });
 
-    // 현재 페이지가 변경되었으면 기록 추가
+    // 현재 페이지가 변경되었으면 기록 추가 (await로 캐시 갱신 대기)
     if (current !== currentPage) {
-      addRecord({
+      await addRecord({
         bookId: book.id,
         date: getTodayString(),
         currentPage: current,
