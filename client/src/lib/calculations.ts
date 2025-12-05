@@ -230,7 +230,7 @@ function getRecordsByDate(records: ReadingRecord[], date: string): ReadingRecord
 
 /**
  * 모든 도서의 오늘 기록을 한 번에 생성합니다
- * 완독한 도서는 "완독-p" 형식으로 표시합니다
+ * 같은 책은 하루에 마지막 기록만 표시
  */
 export function generateDailySummaryAll(
   ownerName: string,
@@ -250,9 +250,15 @@ export function generateDailySummaryAll(
 
   let summary = `${ownerName}의 날두독서 습관 ${totalDays}일차 ${dateStr}\n\n`;
 
-  // 오늘 기록이 있는 도서들만 처리
+  // 책별로 마지막 기록만 추출 (같은 책 중복 방지)
+  const latestRecordsByBook = new Map<number, typeof todayRecords[0]>();
   todayRecords.forEach(record => {
-    const book = books.find(b => b.id === record.bookId);
+    latestRecordsByBook.set(record.bookId, record);
+  });
+
+  // 책별로 요약 생성
+  latestRecordsByBook.forEach((record, bookId) => {
+    const book = books.find(b => b.id === bookId);
     if (book) {
       const dayCount = getDaysSinceStart(book.startDate, today);
       summary += `${dayCount}일차\n`;
