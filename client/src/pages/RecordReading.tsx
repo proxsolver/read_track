@@ -26,7 +26,8 @@ export default function RecordReading() {
   const [match, params] = useRoute('/record/:bookId');
   const { state, addRecord, getRecordsByBook } = useApp();
 
-  const bookId = params?.bookId as string;
+  const bookIdStr = params?.bookId as string;
+  const bookId = parseInt(bookIdStr, 10);
   const book = state.books.find(b => b.id === bookId);
   const records = getRecordsByBook(bookId);
 

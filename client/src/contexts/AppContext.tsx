@@ -84,8 +84,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const createRecordMutation = trpc.records.create.useMutation({
-    onSuccess: (_data, variables) => {
-      utils.records.listByBook.invalidate({ bookId: variables.bookId });
+    onSuccess: () => {
+      utils.records.listAll.invalidate();
     },
   });
 
