@@ -53,6 +53,9 @@ export const appRouter = router({
   }),
 
   records: router({
+    listAll: protectedProcedure.query(({ ctx }) =>
+      db.getAllReadingRecordsByUserId(ctx.user.id)
+    ),
     listByBook: protectedProcedure.input(z.object({ bookId: z.number() })).query(({ input }) =>
       db.getReadingRecordsByBookId(input.bookId)
     ),

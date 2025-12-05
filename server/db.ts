@@ -172,6 +172,30 @@ export async function getReadingRecordsByBookId(bookId: number) {
     .orderBy(desc(readingRecords.date));
 }
 
+// 사용자의 모든 책에 대한 독서 기록 가져오기
+export async function getAllReadingRecordsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // 먼저 사용자의 모든 책 ID 가져오기
+  const userBooks = await db.select({ id: books.id }).from(books)
+    .where(eq(books.userId, userId));
+
+  if (userBooks.length === 0) return [];
+
+  // 모든 책의 기록 가져오기
+  const bookIds = userBooks.map(b => b.id);
+  const allRecords = await Promise.all(
+    bookIds.map(bookId =>
+      db.select().from(readingRecords)
+        .where(eq(readingRecords.bookId, bookId))
+        .orderBy(desc(readingRecords.date))
+    )
+  );
+
+  return allRecords.flat();
+}
+
 export async function getReadingRecordByBookAndDate(bookId: number, date: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

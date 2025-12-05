@@ -52,16 +52,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     { enabled: !!user }
   );
 
-  // 독서 기록 (모든 책의 기록을 가져오기)
-  const allRecordsQueries = books.map(book =>
-    trpc.records.listByBook.useQuery(
-      { bookId: book.id },
-      { enabled: !!user }
-    )
+  // 모든 독서 기록 (한 번의 쿼리로 가져오기 - React Hooks 규칙 준수)
+  const { data: records = [], isLoading: isLoadingRecords } = trpc.records.listAll.useQuery(
+    undefined,
+    { enabled: !!user }
   );
-
-  const records = allRecordsQueries.flatMap(query => query.data || []);
-  const isLoadingRecords = allRecordsQueries.some(query => query.isLoading);
 
   // 프로필
   const { data: profile } = trpc.profile.get.useQuery(
