@@ -199,6 +199,14 @@ export default function RecordReading() {
       {/* 폼 */}
       <main className="container mx-auto px-4 py-8 max-w-md">
         <form onSubmit={handleRecordComplete} className="space-y-6">
+          {/* 현재 진행 상황 표시 */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-700">
+              📖 현재 진행: <strong>{getYesterdayPage(book, records)}p</strong> / {book.totalPages}p
+              ({Math.round((getYesterdayPage(book, records) / book.totalPages) * 100)}%)
+            </p>
+          </div>
+
           {/* 현재 페이지 */}
           <div>
             <label htmlFor="currentPage" className="block text-sm font-medium text-gray-700 mb-2">
@@ -215,7 +223,13 @@ export default function RecordReading() {
               max={book.totalPages}
             />
             <p className="text-xs text-gray-500 mt-1">
-              총 {book.totalPages}p 중 {currentPage ? `${Math.round((parseInt(currentPage) / book.totalPages) * 100)}%` : '0%'} 완료
+              {currentPage && parseInt(currentPage) > getYesterdayPage(book, records) ? (
+                <span className="text-green-600">
+                  ✓ {parseInt(currentPage) - getYesterdayPage(book, records)}p 읽음 → {Math.round((parseInt(currentPage) / book.totalPages) * 100)}% 완료
+                </span>
+              ) : (
+                <span>목표: {book.dailyPages}p/일 (오늘 {getYesterdayPage(book, records) + book.dailyPages}p까지)</span>
+              )}
             </p>
           </div>
 
