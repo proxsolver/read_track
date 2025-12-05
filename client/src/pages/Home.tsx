@@ -11,7 +11,7 @@
 import { useLocation } from 'wouter';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Copy, Check } from 'lucide-react';
+import { Plus, Copy, Check, ClipboardList } from 'lucide-react';
 import BookCard from '@/components/BookCard';
 import SettingsButton from '@/components/SettingsButton';
 import { getTodayOverallProgress, generateDailySummaryAll } from '@/lib/calculations';
@@ -25,7 +25,7 @@ export default function Home() {
 
   // 현재 읽고 있는 도서만 필터링
   const activeBooks = state.books.filter(book => !book.isCompleted);
-  
+
   // 오늘의 전체 목표 달성률
   const todayProgress = getTodayOverallProgress(activeBooks, state.records);
 
@@ -40,7 +40,7 @@ export default function Home() {
       state.books,
       state.records
     );
-    
+
     try {
       await navigator.clipboard.writeText(summary);
       setCopied(true);
@@ -127,6 +127,15 @@ export default function Home() {
               <Plus className="w-4 h-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">새로운 책 추가</span>
               <span className="sm:hidden">책 추가</span>
+            </Button>
+            <Button
+              onClick={() => setLocation('/history')}
+              variant="outline"
+              className="flex-1 text-sm sm:text-base"
+            >
+              <ClipboardList className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">독서 기록</span>
+              <span className="sm:hidden">기록</span>
             </Button>
             <Button
               onClick={() => setLocation('/completed')}

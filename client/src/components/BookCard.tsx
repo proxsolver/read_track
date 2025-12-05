@@ -51,13 +51,13 @@ export default function BookCard({ book }: BookCardProps) {
     <>
       <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white hover:shadow-md transition-shadow">
         <div className="flex gap-3 sm:gap-4">
-          {/* 책 표지 이미지 */}
+          {/* 책 표지 이미지 - 모바일에서도 표시 */}
           {book.coverImageUrl && (
-            <div className="flex-shrink-0 hidden sm:block">
+            <div className="flex-shrink-0">
               <img
                 src={book.coverImageUrl}
                 alt={book.title}
-                className="w-16 h-24 object-cover rounded border border-gray-200"
+                className="w-12 h-16 sm:w-16 sm:h-24 object-cover rounded border border-gray-200"
               />
             </div>
           )}

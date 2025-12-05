@@ -54,7 +54,7 @@ export default function AddBook() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-auto pb-20">
       {/* 헤더 */}
       <header className="border-b border-gray-200">
         <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center gap-2 sm:gap-4">

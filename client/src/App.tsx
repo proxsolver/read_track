@@ -11,6 +11,7 @@ import AddBook from "./pages/AddBook";
 import RecordReading from "./pages/RecordReading";
 import CompletedBooks from "./pages/CompletedBooks";
 import BookNotes from "./pages/BookNotes";
+import History from "./pages/History";
 import Login from "./pages/Login";
 
 function Router() {
@@ -43,6 +44,11 @@ function Router() {
       <Route path="/book-notes/:bookId">
         <AuthGuard>
           <BookNotes />
+        </AuthGuard>
+      </Route>
+      <Route path="/history">
+        <AuthGuard>
+          <History />
         </AuthGuard>
       </Route>
       <Route path="/404" component={NotFound} />
