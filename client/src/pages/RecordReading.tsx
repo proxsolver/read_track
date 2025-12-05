@@ -41,7 +41,9 @@ export default function RecordReading() {
   useEffect(() => {
     if (book) {
       const yesterdayPage = getYesterdayPage(book, records);
-      setCurrentPage(String(yesterdayPage));
+      // 어제 페이지 + 일일 목표 페이지를 기본값으로 설정
+      const suggestedPage = Math.min(yesterdayPage + book.dailyPages, book.totalPages);
+      setCurrentPage(String(suggestedPage));
     }
   }, [book, records]);
 
