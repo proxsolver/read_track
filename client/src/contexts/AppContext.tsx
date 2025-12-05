@@ -28,6 +28,14 @@ interface AppContextType {
   // 프로필 관련
   ownerName: string;
   setOwnerName: (name: string) => Promise<void>;
+
+  // 하위 호환성을 위한 state 래퍼
+  state: {
+    books: Book[];
+    records: ReadingRecord[];
+    ownerName: string;
+    startDate: string;
+  };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -150,6 +158,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOwnerName: setOwnerNameFn,
     getRecordsByBook,
     ownerName: profile?.ownerName || '',
+    // 하위 호환성을 위한 state 래퍼
+    state: {
+      books: books.map(b => ({
+        ...b,
+        isCompleted: !!b.isCompleted,
+      })),
+      records,
+      ownerName: profile?.ownerName || '',
+      startDate: profile?.startDate || '',
+    },
   };
 
   return (
