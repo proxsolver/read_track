@@ -74,8 +74,8 @@ export default function SettingsButton() {
                     type="button"
                     onClick={() => setTheme(t.id)}
                     className={`p-3 rounded-lg border-2 transition-all duration-200 ${theme === t.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <div className="text-2xl mb-1">{t.emoji}</div>
@@ -116,10 +116,9 @@ export default function SettingsButton() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="border-gray-300"
-                disabled
               />
               <p className="text-xs text-gray-500">
-                첫 번째 도서의 시작일입니다. (읽기 전용)
+                독서 일수 계산의 기준일입니다.
               </p>
             </div>
           </div>
