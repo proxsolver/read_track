@@ -25,7 +25,7 @@ interface BookSettingsDialogProps {
   onUpdate: (updates: Partial<Book>) => void;
   onDelete: () => void;
   currentPage: number;
-  addRecord: (record: Omit<ReadingRecord, 'id'>) => void;
+  addRecord: (record: Omit<ReadingRecord, 'id'>) => Promise<void>;
 }
 
 export default function BookSettingsDialog({
