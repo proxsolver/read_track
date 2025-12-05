@@ -39,8 +39,8 @@ export default function BookCard({ book }: BookCardProps) {
   const progress = getProgressPercentage(book, records);
   const todayRead = getTodayReadPages(book, records);
 
-  const handleUpdateBook = (updates: Partial<Book>) => {
-    updateBook(book.id, updates);
+  const handleUpdateBook = async (updates: Partial<Book>) => {
+    await updateBook(book.id, updates);
   };
 
   const handleDeleteBook = () => {

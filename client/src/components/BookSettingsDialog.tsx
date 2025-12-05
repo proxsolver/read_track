@@ -22,7 +22,7 @@ interface BookSettingsDialogProps {
   book: Book;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (updates: Partial<Book>) => void;
+  onUpdate: (updates: Partial<Book>) => Promise<void>;
   onDelete: () => void;
   currentPage: number;
   addRecord: (record: Omit<ReadingRecord, 'id'>) => Promise<void>;
@@ -72,7 +72,7 @@ export default function BookSettingsDialog({
       return;
     }
 
-    onUpdate({
+    await onUpdate({
       title: title.trim(),
       totalPages: total,
       dailyPages: daily,
