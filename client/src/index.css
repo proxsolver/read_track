@@ -113,6 +113,61 @@
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
+/* 모던 테마 - 다크 + 그라데이션 + 네온 악센트 */
+.theme-modern {
+  --primary: oklch(0.7 0.2 290);
+  --primary-foreground: oklch(1 0 0);
+  --accent: oklch(0.6 0.25 330);
+  --ring: oklch(0.7 0.2 290);
+}
+
+.theme-modern body {
+  background: linear-gradient(135deg, oklch(0.15 0.02 280), oklch(0.12 0.03 320)) !important;
+}
+
+.theme-modern .border-gray-200 {
+  border-color: oklch(1 0 0 / 0.1) !important;
+}
+
+.theme-modern .bg-blue-600 {
+  background: linear-gradient(135deg, oklch(0.6 0.2 290), oklch(0.5 0.25 330)) !important;
+}
+
+.theme-modern .bg-green-600 {
+  background: linear-gradient(135deg, oklch(0.6 0.2 160), oklch(0.5 0.2 180)) !important;
+}
+
+/* 키즈 테마 - 파스텔 + 이모지 스타일 */
+.theme-kids {
+  --primary: oklch(0.7 0.15 50);
+  --primary-foreground: oklch(0.2 0.02 50);
+  --radius: 1.2rem;
+}
+
+.theme-kids body {
+  background: linear-gradient(135deg, oklch(0.98 0.02 80), oklch(0.95 0.05 60)) !important;
+}
+
+.theme-kids .bg-blue-600 {
+  background: linear-gradient(135deg, oklch(0.75 0.15 50), oklch(0.7 0.2 30)) !important;
+}
+
+.theme-kids .bg-green-600 {
+  background: linear-gradient(135deg, oklch(0.8 0.15 150), oklch(0.7 0.2 130)) !important;
+}
+
+.theme-kids .border-gray-200 {
+  border-color: oklch(0.85 0.08 60) !important;
+}
+
+.theme-kids .rounded-lg {
+  border-radius: 1.5rem !important;
+}
+
+.theme-kids h1 {
+  color: oklch(0.5 0.15 30) !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
