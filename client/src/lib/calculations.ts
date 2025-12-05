@@ -67,7 +67,7 @@ export function getCurrentPage(
   const latestRecord = records
     .filter(r => r.date <= date)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-  
+
   return latestRecord ? latestRecord.currentPage : 0;
 }
 
@@ -131,13 +131,13 @@ export function getTodayOverallProgress(
   records: ReadingRecord[]
 ): number {
   if (books.length === 0) return 0;
-  
+
   const totalProgress = books.reduce((sum, book) => {
     const todayRead = getTodayReadPages(book, records);
     const progress = Math.min(100, (todayRead / book.dailyPages) * 100);
     return sum + progress;
   }, 0);
-  
+
   return Math.round(totalProgress / books.length);
 }
 
@@ -163,7 +163,7 @@ export function getCompletionDate(
   const completionRecord = records
     .filter(r => r.bookId === book.id && r.currentPage >= book.totalPages)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
-  
+
   return completionRecord ? completionRecord.date : null;
 }
 
@@ -195,16 +195,16 @@ export function generateTodaySummary(
 ): string {
   const today = getTodayString();
   const todayRecords = getRecordsByDate(records, today);
-  
+
   if (todayRecords.length === 0) {
     return '오늘 아직 독서 기록이 없습니다.';
   }
-  
+
   const totalDays = getDaysSinceStart(books[0]?.startDate || today);
   const dateStr = formatDateKorean(today);
-  
+
   let summary = `${ownerName}의 날두독서 습관 ${totalDays}일차 ${dateStr}\n\n`;
-  
+
   todayRecords.forEach(record => {
     const book = books.find(b => b.id === record.bookId);
     if (book) {
@@ -215,9 +215,9 @@ export function generateTodaySummary(
       summary += `${book.title} ${yesterdayPage + 1}-${todayPage}p 독서 완료\n\n`;
     }
   });
-  
+
   summary += '성장에 성공!';
-  
+
   return summary;
 }
 
@@ -240,35 +240,42 @@ export function generateDailySummaryAll(
 ): string {
   const today = getTodayString();
   const todayRecords = getRecordsByDate(records, today);
-  
+
   if (todayRecords.length === 0) {
     return '오늘 아직 독서 기록이 없습니다.';
   }
-  
+
   const totalDays = getDaysSinceStart(startDate);
   const dateStr = formatDateKorean(today);
-  
+
   let summary = `${ownerName}의 날두독서 습관 ${totalDays}일차 ${dateStr}\n\n`;
-  
+
   // 오늘 기록이 있는 도서들만 처리
   todayRecords.forEach(record => {
     const book = books.find(b => b.id === record.bookId);
     if (book) {
       const dayCount = getDaysSinceStart(book.startDate, today);
-      
+      summary += `${dayCount}일차\n`;
+
       if (isBookCompleted(book, records)) {
         // 완독한 책
-        summary += `${dayCount}일차\n${book.title} 완독-p 독서 완료\n\n`;
+        summary += `${book.title} 완독 독서 완료\n`;
       } else {
         // 읽는 중인 책
         const yesterdayPage = getYesterdayPage(book, records);
         const todayPage = record.currentPage;
-        summary += `${dayCount}일차\n${book.title} ${yesterdayPage + 1}-${todayPage}p 독서 완료\n\n`;
+        summary += `${book.title} ${yesterdayPage + 1}-${todayPage}p 독서 완료\n`;
       }
+
+      // 메모가 있으면 추가
+      if (record.memo) {
+        summary += `"${record.memo}"\n`;
+      }
+      summary += '\n';
     }
   });
-  
+
   summary += '성장에 성공!';
-  
+
   return summary;
 }

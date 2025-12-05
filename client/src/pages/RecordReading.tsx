@@ -1,24 +1,23 @@
 /**
  * 독서 기록 페이지
  * 
- * 설계: 미니멀한 폼 디자인
- * - 오늘 읽은 페이지 입력
- * - 메모 입력 (선택 사항)
- * - 독서 요약 생성 및 자동 복사
+ * 설계: 메모 중심의 간단한 기록
+ * - 현재 진행 상황 표시
+ * - 오늘 읽을 페이지 자동 계산
+ * - 메모 입력에 집중
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Copy, Check } from 'lucide-react';
 import {
   getCurrentPage,
   getTodayString,
   generateTodaySummary,
-  getYesterdayPage,
+  getProgressPercentage,
 } from '@/lib/calculations';
 
 export default function RecordReading() {
@@ -31,52 +30,28 @@ export default function RecordReading() {
   const book = state.books.find(b => b.id === bookId);
   const records = getRecordsByBook(bookId);
 
-  const [currentPage, setCurrentPage] = useState('');
   const [memo, setMemo] = useState('');
   const [summary, setSummary] = useState('');
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState('');
   const [autocopied, setAutocopied] = useState(false);
-
-  useEffect(() => {
-    if (book) {
-      const yesterdayPage = getYesterdayPage(book, records);
-      // 어제 페이지 + 일일 목표 페이지를 기본값으로 설정
-      const suggestedPage = Math.min(yesterdayPage + book.dailyPages, book.totalPages);
-      setCurrentPage(String(suggestedPage));
-    }
-  }, [book, records]);
 
   if (!match || !book) {
     return null;
   }
 
+  // 현재 페이지와 오늘 목표 페이지 계산
+  const currentPageNum = getCurrentPage(book, records);
+  const targetPage = Math.min(currentPageNum + book.dailyPages, book.totalPages);
+  const progress = getProgressPercentage(book, records);
+
   const handleRecordComplete = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
-    if (!currentPage || parseInt(currentPage) < 0) {
-      setError('페이지 수를 입력해주세요.');
-      return;
-    }
-
-    const pageNum = parseInt(currentPage);
-    if (pageNum > book.totalPages) {
-      setError(`총 페이지 수(${book.totalPages}p)를 초과할 수 없습니다.`);
-      return;
-    }
-
-    const yesterdayPage = getYesterdayPage(book, records);
-    if (pageNum <= yesterdayPage) {
-      setError(`어제 읽은 페이지(${yesterdayPage}p)보다 더 진행해야 합니다.`);
-      return;
-    }
-
-    // 기록 추가
+    // 기록 추가 (자동으로 dailyPages 만큼 진행)
     addRecord({
       bookId: book.id,
       date: getTodayString(),
-      currentPage: pageNum,
+      currentPage: targetPage,
       memo: memo.trim() || undefined,
     });
 
@@ -85,7 +60,7 @@ export default function RecordReading() {
       id: 'temp',
       bookId: book.id,
       date: getTodayString(),
-      currentPage: pageNum,
+      currentPage: targetPage,
       memo: memo.trim() || undefined,
     }];
 
@@ -200,59 +175,32 @@ export default function RecordReading() {
       <main className="container mx-auto px-4 py-8 max-w-md">
         <form onSubmit={handleRecordComplete} className="space-y-6">
           {/* 현재 진행 상황 표시 */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-700">
-              📖 현재 진행: <strong>{getYesterdayPage(book, records)}p</strong> / {book.totalPages}p
-              ({Math.round((getYesterdayPage(book, records) / book.totalPages) * 100)}%)
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-700 mb-2">
+              📖 현재 진행: <strong>{currentPageNum}p</strong> / {book.totalPages}p ({progress}%)
             </p>
-          </div>
-
-          {/* 현재 페이지 */}
-          <div>
-            <label htmlFor="currentPage" className="block text-sm font-medium text-gray-700 mb-2">
-              오늘 몇 페이지까지 읽으셨나요? *
-            </label>
-            <Input
-              id="currentPage"
-              type="number"
-              placeholder="예: 359"
-              value={currentPage}
-              onChange={(e) => setCurrentPage(e.target.value)}
-              className="border-gray-300 text-lg"
-              min="0"
-              max={book.totalPages}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {currentPage && parseInt(currentPage) > getYesterdayPage(book, records) ? (
-                <span className="text-green-600">
-                  ✓ {parseInt(currentPage) - getYesterdayPage(book, records)}p 읽음 → {Math.round((parseInt(currentPage) / book.totalPages) * 100)}% 완료
-                </span>
-              ) : (
-                <span>목표: {book.dailyPages}p/일 (오늘 {getYesterdayPage(book, records) + book.dailyPages}p까지)</span>
-              )}
+            <p className="text-sm text-blue-700">
+              📝 오늘 기록: <strong>{currentPageNum + 1}-{targetPage}p</strong> ({book.dailyPages}p)
             </p>
           </div>
 
           {/* 메모 */}
           <div>
             <label htmlFor="memo" className="block text-sm font-medium text-gray-700 mb-2">
-              오늘의 메모 (선택 사항)
+              오늘의 메모 💬
             </label>
             <Textarea
               id="memo"
               placeholder="인상 깊었던 구절이나 생각을 기록하세요."
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
-              className="border-gray-300 min-h-24"
+              className="border-gray-300 min-h-32"
+              autoFocus
             />
+            <p className="text-xs text-gray-500 mt-1">
+              요약에 포함됩니다. (선택 사항)
+            </p>
           </div>
-
-          {/* 에러 메시지 */}
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-              {error}
-            </div>
-          )}
 
           {/* 버튼 */}
           <div className="flex gap-2 pt-4">
@@ -268,7 +216,7 @@ export default function RecordReading() {
               type="submit"
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              기록 완료
+              ✓ 오늘 독서 완료
             </Button>
           </div>
         </form>
